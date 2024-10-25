@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.URL}}</title>
+    <script>
+        async function loadArticle() {
+            const url = window.location.pathname;
+            const progressBar = document.getElementById("progress");
+            const contentDiv = document.getElementById("content");
+
+            // Проверяем, есть ли статья в LocalStorage
+            const savedContent = localStorage.getItem(url);
+            if (savedContent) {
+                console.log("Статья уже загружена из LocalStorage.");
+                contentDiv.textContent = savedContent;
+                progressBar.style.display = "none";
+                return;
+            }
+
+            try {
+                console.log("Запрос статьи по URL:", url);
+                const response = await fetch(url, { method: 'GET' });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const contentLength = +response.headers.get('Content-Length');
+                let receivedLength = 0;
+                let chunks = [];
+
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) {
+                        break;
+                    }
+
+                    chunks.push(value);
+                    receivedLength += value.length;
+
+                    progressBar.value = (receivedLength / contentLength) * 100;
+                }
+
+                const chunksAll = new Uint8Array(receivedLength);
+                let position = 0;
+                for (let chunk of chunks) {
+                    chunksAll.set(chunk, position);
+                    position += chunk.length;
+                }
+
+                const articleContent = new TextDecoder("utf-8").decode(chunksAll);
+                localStorage.setItem(url, articleContent);
+
+                contentDiv.textContent = articleContent;  // Отображаем контент статьи
+                progressBar.style.display = "none";
+            } catch (err) {
+                console.error("Ошибка загрузки:", err);
+                contentDiv.textContent = "Ошибка загрузки статьи.";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const contentDiv = document.getElementById("content");
+            const content = contentDiv.textContent.trim();
+            const url = window.location.pathname;
+
+            if (content) {
+                // Если статья была рендерена сервером, сохраняем её в LocalStorage
+                localStorage.setItem(url, content);
+                console.log("Сохранили статью, рендеренную сервером, в LocalStorage.");
+            } else {
+                // Загружаем статью с сервера, если её нет на странице
+                loadArticle();
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>{{.URL}}</h1>
+    <progress id="progress" value="0" max="100"></progress> <!-- Прогресс загрузки -->
+    <div id="content">{{.Content}}</div> <!-- Контент статьи отображается здесь -->
+    <a href="/">Назад</a>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск статей</title>
+    <script>
+        // Показать загруженные статьи из LocalStorage
+        function showSavedArticles() {
+            const savedArticlesList = document.getElementById("saved-articles");
+
+            // Очищаем список перед добавлением новых элементов
+            savedArticlesList.innerHTML = "";
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const url = localStorage.key(i);
+                const listItem = document.createElement("li");
+                const link = document.createElement("a");
+
+                link.href = "#"; // По умолчанию не переходить по ссылке
+                link.textContent = url;
+                link.onclick = function () {
+                    showArticle(url);
+                };
+
+                listItem.appendChild(link);
+                savedArticlesList.appendChild(listItem);
+            }
+        }
+
+        // Показать контент статьи по клику
+        function showArticle(url) {
+            const contentDiv = document.getElementById("article-content");
+            const savedContent = localStorage.getItem(url);
+
+            if (savedContent) {
+                contentDiv.textContent = savedContent;
+            } else {
+                contentDiv.textContent = "Контент не найден.";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", showSavedArticles);
+    </script>
+</head>
+<body>
+    <h1>Поиск статей</h1>
+    <form action="/search" method="get">
+        <label for="keyword">Введите ключевое слово:</label>
+        <input type="text" id="keyword" name="keyword" required>
+        <button type="submit">Поиск</button>
+    </form>
+
+    <h2>Загруженные статьи:</h2>
+    <ul id="saved-articles"></ul>
+
+    <h2>Выбранная статья:</h2>
+    <div id="article-content"></div>
+
+    <a href="/">Назад</a>
+</body>
+</html>

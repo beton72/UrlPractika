@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты поиска</title>
+</head>
+<body>
+    <h1>Результаты для "{{.Keyword}}"</h1>
+    {{if .URLs}}
+        <ul>
+        {{range .URLs}}
+            <li><a href="{{.}}">{{.}}</a></li>
+        {{end}}
+        </ul>
+    {{else}}
+        <p>Ничего не найдено.</p>
+    {{end}}
+    <a href="/">Назад</a>
+</body>
+</html>
